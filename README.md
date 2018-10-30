@@ -11,15 +11,14 @@
 
 Inspired by [Yarn](https://yarnpkg.com/), [Bundler](https://bundler.io/), and [Pipenv](https://docs.pipenv.org/)
 
-[![Build Status](https://travis-ci.org/ankane/jetpack.svg?branch=master)](https://travis-ci.org/ankane/jetpack)
+[![Build Status](https://travis-ci.org/ankane/jetpack.svg?branch=master)](https://travis-ci.org/ankane/jetpack) [![CRAN status](https://www.r-pkg.org/badges/version/jetpack)](https://cran.r-project.org/package=jetpack)
 
 ## Installation
 
 Install Jetpack
 
 ```r
-install.packages("devtools")
-devtools::install_github("ankane/jetpack@v0.3.1")
+install.packages("jetpack")
 ```
 
 ## How It Works
@@ -74,7 +73,7 @@ Add from GitHub or another remote source
 jetpack::add("plyr", remote="hadley/plyr")
 ```
 
-Supports [all of these remotes](https://cran.r-project.org/package=devtools/vignettes/dependencies.html)
+Supports [these remotes](https://cran.r-project.org/package=remotes/vignettes/dependencies.html)
 
 Add from a specific tag, branch, or commit
 
@@ -134,30 +133,6 @@ Check that all dependencies are installed
 jetpack::check()
 ```
 
-### Info
-
-Get info for a package
-
-```r
-jetpack::info("stringr")
-```
-
-Get info for a specific version
-
-```r
-jetpack::info("stringr@1.0.0")
-```
-
-### Search
-
-Search for packages
-
-```r
-jetpack::search("xgboost")
-```
-
-Works with title, description, authors, maintainers, and more
-
 ## Source Control
 
 Be sure to commit the files Jetpack generates to source control.
@@ -177,8 +152,7 @@ jetpack::install(deployment=TRUE)
 Create an `init.R` with:
 
 ```r
-install.packages("devtools")
-devtools::install_github("ankane/jetpack@v0.3.1")
+install.packages("jetpack")
 jetpack::install(deployment=TRUE)
 ```
 
@@ -239,15 +213,6 @@ jetpack global remove plyr
 jetpack global list
 ```
 
-Or get info about packages
-
-```sh
-jetpack info stringr
-jetpack info stringr@1.0.0
-jetpack search xgboost
-jetpack search "neural network"
-```
-
 For the full list of commands, use:
 
 ```sh
@@ -257,6 +222,10 @@ jetpack help
 ## Upgrading
 
 To upgrade, rerun the [installation instructions](#installation).
+
+### 0.4.0
+
+Jetpack 0.4.0 reduces the number of dependencies from 42 to 9. As part of this, the `info` and `search` commands have been removed.
 
 ### 0.3.0
 
