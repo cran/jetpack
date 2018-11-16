@@ -111,6 +111,28 @@ globalList <- function() {
   }
 }
 
+globalOutdatedPackages <- function() {
+  packages <- rownames(installed.packages())
+
+  deps <- remotes::package_deps(packages)
+
+  # TODO decide what to do about uninstalled packages
+  deps[deps$diff == -1, ]
+}
+
+globalOutdated <- function() {
+  outdated <- globalOutdatedPackages()
+
+  if (nrow(outdated) > 0) {
+    for (i in 1:nrow(outdated)) {
+      row <- outdated[i, ]
+      message(paste0(row$package, " (latest ", row$available, ", installed ", row$installed, ")"))
+    }
+  } else {
+    success("All packages are up-to-date!")
+  }
+}
+
 globalRemove <- function(packages) {
   for (package in packages) {
     suppressMessages(remove.packages(package))
@@ -122,26 +144,17 @@ globalRemove <- function(packages) {
 
 globalUpdate <- function(packages, remotes, verbose) {
   if (length(packages) == 0) {
-    oldPackages <- as.data.frame(utils::old.packages())
-    packages <- rownames(oldPackages)
+    outdated <- globalOutdatedPackages()
 
-    updates <- FALSE
-
-    for (package in packages) {
-      currentVersion <- as.character(packageVersion(package))
-
-      # double check, since old.packages() is sometimes wrong
-      repoVersion <- gsub("-", ".", oldPackages$ReposVer[package])
-
-      if (!identical(currentVersion, repoVersion)) {
+    if (nrow(outdated) > 0) {
+      for (i in 1:nrow(outdated)) {
+        row <- outdated[i, ]
+        package <- row$package
         utils::install.packages(package, quiet=!verbose)
         newVersion <- as.character(packageVersion(package))
-        success(paste0("Updated ", package, " to ", newVersion, " (was ", currentVersion, ")"))
-        updates <- TRUE
+        success(paste0("Updated ", package, " to ", newVersion, " (was ", row$installed, ")"))
       }
-    }
-
-    if (!updates) {
+    } else {
       success("All packages are up-to-date!")
     }
   } else {
@@ -162,7 +175,7 @@ globalUpdate <- function(packages, remotes, verbose) {
   }
 }
 
-installHelper <- function(remove=c(), desc=NULL, show_status=FALSE) {
+installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=FALSE) {
   if (is.null(desc)) {
     desc <- getDesc()
   }
@@ -211,10 +224,16 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE) {
   restore <- missing[!is.na(missing$packrat.version), ]
   need <- missing[is.na(missing$packrat.version), ]
   missing_packrat <- status[is.na(status$packrat.version), ]
+  mismatch <- status[!is.na(status$library.version) & !is.na(status$packrat.version) & status$packrat.version != status$library.version, ]
+
+  # remove mismatch
+  for (name in mismatch$package) {
+    pkgRemove(name)
+  }
 
   status_updated <- FALSE
 
-  if (nrow(restore) > 0) {
+  if (nrow(restore) > 0 || nrow(mismatch) > 0) {
     suppressWarnings(packrat::restore(project=dir, prompt=FALSE))
 
     # non-vendor approach
@@ -237,7 +256,7 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE) {
   if (nrow(specificDeps) > 0) {
     specificDeps$version <- sub("== ", "", specificDeps$version)
     specificDeps <- merge(specificDeps, status, by="package")
-    mismatch <- specificDeps[!identical(specificDeps$version, specificDeps$packrat.version), ]
+    mismatch <- specificDeps[is.na(specificDeps$packrat.version) | specificDeps$version != specificDeps$packrat.version, ]
     if (nrow(mismatch) > 0) {
       for (i in 1:nrow(mismatch)) {
         row <- mismatch[i, ]
@@ -250,8 +269,8 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE) {
   # in case we're missing any deps
   # unfortunately, install_deps doesn't check version requirements
   # https://github.com/r-lib/devtools/issues/1314
-  if (nrow(need) > 0 || length(remove) > 0) {
-    remotes::install_deps(dir, upgrade=FALSE, reload=FALSE)
+  if (nrow(need) > 0 || length(remove) > 0 || update_all) {
+    remotes::install_deps(dir, upgrade=update_all, reload=FALSE)
     status_updated <- TRUE
   }
 
@@ -656,30 +675,58 @@ remove <- function(packages, remotes=c()) {
 #' jetpack::update("randomForest")
 #'
 #' jetpack::update(c("randomForest", "DBI"))
+#'
+#' jetpack::update()
 #' }
-update <- function(packages, remotes=c()) {
+update <- function(packages=c(), remotes=c()) {
   sandbox({
     prepCommand()
 
-    # store starting versions
-    status <- getStatus()
-    versions <- list()
-    for (package in packages) {
-      package <- getName(package)
-      versions[package] <- pkgVersion(status, package)
-    }
+    if (length(packages) == 0) {
+      status <- getStatus()
+      packages <- status[status$currently.used & status$package != "packrat", ]$package
 
-    desc <- updateDesc(packages, remotes)
+      deps <- remotes::package_deps(packages)
+      outdated <- deps[deps$diff < 0, ]
 
-    installHelper(remove=packages, desc=desc)
+      if (nrow(outdated) > 0) {
+        desc <- updateDesc(packages, remotes)
 
-    # show updated versions
-    status <- getStatus()
-    for (package in packages) {
-      package <- getName(package)
-      currentVersion <- versions[package]
-      newVersion <- pkgVersion(status, package)
-      success(paste0("Updated ", package, " to ", newVersion, " (was ", currentVersion, ")"))
+        installHelper(update_all=TRUE, desc=desc)
+
+        for (i in 1:nrow(outdated)) {
+          row <- outdated[i, ]
+          if (is.na(row$installed)) {
+            success(paste0("Installed ", row$package, " ", row$available))
+          } else {
+            success(paste0("Updated ", row$package, " to ", row$available, " (was ", row$installed, ")"))
+          }
+        }
+      } else {
+        success("All packages are up-to-date!")
+      }
+    } else {
+      # store starting versions
+      status <- getStatus()
+
+      versions <- list()
+      for (package in packages) {
+        package <- getName(package)
+        versions[package] <- pkgVersion(status, package)
+      }
+
+      desc <- updateDesc(packages, remotes)
+
+      installHelper(remove=packages, desc=desc)
+
+      # show updated versions
+      status <- getStatus()
+      for (package in packages) {
+        package <- getName(package)
+        currentVersion <- versions[package]
+        newVersion <- pkgVersion(status, package)
+        success(paste0("Updated ", package, " to ", newVersion, " (was ", currentVersion, ")"))
+      }
     }
   })
 }
@@ -708,6 +755,35 @@ check <- function() {
     } else {
       success("All dependencies are satisfied")
       invisible(TRUE)
+    }
+  })
+}
+
+#' Show outdated packages
+#'
+#' @export
+#' @examples \dontrun{
+#'
+#' jetpack::outdated()
+#' }
+outdated <- function() {
+  sandbox({
+    prepCommand()
+
+    status <- getStatus()
+    packages <- status[status$currently.used, ]$package
+
+    deps <- remotes::package_deps(packages)
+    # TODO decide what to do about uninstalled packages
+    outdated <- deps[deps$diff == -1, ]
+
+    if (nrow(outdated) > 0) {
+      for (i in 1:nrow(outdated)) {
+        row <- outdated[i, ]
+        message(paste0(row$package, " (latest ", row$available, ", installed ", row$installed, ")"))
+      }
+    } else {
+      success("All packages are up-to-date!")
     }
   })
 }
@@ -754,14 +830,16 @@ run <- function() {
     jetpack init
     jetpack add <package>... [--remote=<remote>]...
     jetpack remove <package>... [--remote=<remote>]...
-    jetpack update <package>... [--remote=<remote>]...
+    jetpack update [<package>...] [--remote=<remote>]...
     jetpack check
+    jetpack outdated
     jetpack version
     jetpack help
     jetpack global add <package>... [--remote=<remote>]...
     jetpack global remove <package>... [--remote=<remote>]...
     jetpack global update [<package>...] [--remote=<remote>]... [--verbose]
-    jetpack global list"
+    jetpack global list
+    jetpack global outdated"
 
     opts <- NULL
     tryCatch({
@@ -787,8 +865,10 @@ run <- function() {
           globalRemove(opts$package)
         } else if (opts$update) {
           globalUpdate(opts$package, opts$remote, opts$verbose)
-        } else {
+        } else if (opts$list) {
           globalList()
+        } else {
+          globalOutdated()
         }
       } else if (opts$init) {
         init()
@@ -802,6 +882,8 @@ run <- function() {
         if (!check()) {
           quit(status=1)
         }
+      } else if (opts$outdated) {
+        outdated()
       } else if (opts$version) {
         version()
       } else if (opts$help) {

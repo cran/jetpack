@@ -2,9 +2,8 @@
 
 :fire: A friendly package manager for R
 
-- Designed for reproducibility (thanks to [Packrat](https://rstudio.github.io/packrat/), no more global installs!)
-- Lightweight (adds just three files to your project)
-- Secure by default
+- Lightweight - adds just three files to your project
+- Designed for reproducibility - thanks to [Packrat](https://rstudio.github.io/packrat/), no more global installs!
 - Works from both R and the command line
 
 ![Screenshot](https://gist.github.com/ankane/b6988db2802aca68a589b31e41b44195/raw/bd6c163ef01a39aa3efc882fee5a82c75f002a61/jetpack.png)
@@ -23,7 +22,7 @@ install.packages("jetpack")
 
 ## How It Works
 
-Jetpack creates a `DESCRIPTION` file to store your project dependencies. It stores the specific version of each package in `packrat.lock`. This makes it possible to have a reproducible environment. You can edit dependencies in the `DESCRIPTION` file directly, but Jetpack provides functions to help with this.
+Jetpack uses the `DESCRIPTION` file to store your project dependencies. It stores the specific version of each package in `packrat.lock`. This makes it possible to have a reproducible environment. You can edit dependencies in the `DESCRIPTION` file directly, but Jetpack provides functions to help with this.
 
 ## Getting Started
 
@@ -105,6 +104,12 @@ Update multiple packages
 jetpack::update(c("randomForest", "DBI"))
 ```
 
+Update all packages
+
+```r
+jetpack::update()
+```
+
 ### Remove
 
 Remove a package
@@ -131,6 +136,14 @@ Check that all dependencies are installed
 
 ```r
 jetpack::check()
+```
+
+### Outdated
+
+Show outdated packages
+
+```r
+jetpack::outdated()
 ```
 
 ## Source Control
@@ -202,6 +215,7 @@ jetpack add plyr --remote=hadley/plyr
 jetpack update randomForest
 jetpack remove DBI
 jetpack check
+jetpack outdated
 ```
 
 You can also use it to manage global packages
@@ -209,8 +223,16 @@ You can also use it to manage global packages
 ```sh
 jetpack global add randomForest
 jetpack global update DBI
+jetpack global update
 jetpack global remove plyr
 jetpack global list
+jetpack global outdated
+```
+
+You can even use it to update itself
+
+```sh
+jetpack global update jetpack
 ```
 
 For the full list of commands, use:
@@ -225,7 +247,7 @@ To upgrade, rerun the [installation instructions](#installation).
 
 ### 0.4.0
 
-Jetpack 0.4.0 reduces the number of dependencies from 42 to 9. As part of this, the `info` and `search` commands have been removed.
+Jetpack 0.4.0 greatly reduces the number of dependencies. As part of this, the `info` and `search` commands have been removed.
 
 ### 0.3.0
 
@@ -262,3 +284,18 @@ Everyone is encouraged to help improve this project. Here are a few ways you can
 - Fix bugs and [submit pull requests](https://github.com/ankane/jetpack/pulls)
 - Write, clarify, or fix documentation
 - Suggest or add new features
+
+To get started with development and testing:
+
+```sh
+git clone https://github.com/ankane/jetpack.git
+cd jetpack
+```
+
+In R, do:
+
+```r
+install.packages("devtools")
+devtools::install_deps(dependencies=TRUE)
+devtools::test()
+```
