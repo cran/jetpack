@@ -1,12 +1,12 @@
-33ef4ff28ebf415b6bd19c899b137ad7 *DESCRIPTION
+107de7604670aea18d0a27dbd6bd9b0f *DESCRIPTION
 f1b2b2c2437bf90aec2a5815a9ced995 *LICENSE
 7a9e739e8d6d3c20697c588357aa1d1d *NAMESPACE
-3447726032fc5983fc54ea2501d3b921 *NEWS.md
+84d31a5fae649eae91603363b20fd6ae *NEWS.md
 d29954923fa4964b3d2207079d174335 *R/add.R
 31ac870c3faeac90d8ddc9b8c9273e63 *R/check.R
 aee7ef881d3adc7d7562b4494d484eb7 *R/cli.R
 d8a056d3a078bcba75472989f545c5ad *R/global.R
-ef79230892b66daa4697fd16bf61fc12 *R/helpers.R
+565785bbeb4b0d98af38ffaf72c943ae *R/helpers.R
 1c2fb1ca09a651ed38af854507a8bfef *R/init.R
 fd2a36fbe059858050d0c601faa83815 *R/install.R
 55122830d234f1bcd36242b75e7ca5d5 *R/load.R
@@ -26,4 +26,4 @@ d87adf723f71e9bcca7a0606c08fbf06 *man/outdated.Rd
 a1b4f9c8864868298350d57d84a46976 *man/run.Rd
 49be0b28438228f2248a43678e958b6e *man/update.Rd
 1eaa4296b9a10529fd928baae22e3acb *tests/testthat.R
-f20dfe32e608da189ff8d618a6e90244 *tests/testthat/test-jetpack.R
+24e8da268b7c73fc6a7fe12be7655776 *tests/testthat/test-jetpack.R
