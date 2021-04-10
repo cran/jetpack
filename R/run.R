@@ -12,6 +12,7 @@ run <- function() {
     jetpack update [<package>...] [--remote=<remote>]...
     jetpack check
     jetpack outdated
+    jetpack migrate
     jetpack version
     jetpack help
     jetpack global add <package>... [--remote=<remote>]...
@@ -25,7 +26,7 @@ run <- function() {
       opts <- docopt::docopt(doc)
     }, error=function(err) {
       msg <- conditionMessage(err)
-      if (!grepl("usage:", msg)) {
+      if (!grepl("Usage:", msg)) {
         warn(msg)
       }
       message(doc)
@@ -63,6 +64,8 @@ run <- function() {
         }
       } else if (opts$outdated) {
         outdated()
+      } else if (opts$migrate) {
+        migrate()
       } else if (opts$version) {
         version()
       } else if (opts$help) {
@@ -72,7 +75,7 @@ run <- function() {
       }
     }, error=function(err) {
       msg <- conditionMessage(err)
-      cat(crayon::red(paste0(msg, "\n")))
+      cat(color(paste0(msg, "\n"), "red"))
       quit(status=1)
     })
   })
