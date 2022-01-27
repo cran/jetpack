@@ -1,3 +1,5 @@
+.jetpack_env <- new.env(parent=emptyenv())
+
 checkInsecureRepos <- function() {
   repos <- getOption("repos")
   if (is.list(repos)) {
@@ -18,18 +20,25 @@ color <- function(message, color) {
   }
 }
 
+configureRenv <- function(code) {
+  previous <- options(
+    "renv.verbose",
+    "renv.config.synchronized.check",
+    "renv.config.sandbox.enabled"
+  )
+  on.exit(options(previous))
+  options(
+    renv.verbose=FALSE,
+    renv.config.synchronized.check=FALSE,
+    renv.config.sandbox.enabled=TRUE
+  )
+  eval(code)
+}
+
 enableRenv <- function() {
   # use load (activate updates profile then calls load)
   # no need to call quiet since we already set it globally
   renv::load(renvProject())
-}
-
-ensureRepos <- function() {
-  repos <- getOption("repos", list())
-  if (!is.na(repos["CRAN"]) && repos["CRAN"] == "@CRAN@") {
-    repos["CRAN"] <- "https://cloud.r-project.org/"
-    options(repos=repos)
-  }
 }
 
 findDir <- function(path) {
@@ -62,6 +71,15 @@ getName <- function(package) {
     package <- parts[1]
   }
   package
+}
+
+getRepos <- function() {
+  repos <- getOption("repos", list())
+  if (!is.na(repos["CRAN"]) && repos["CRAN"] == "@CRAN@") {
+    # fine to update in-place (does not propagate to option)
+    repos["CRAN"] <- "https://cloud.r-project.org/"
+  }
+  repos
 }
 
 getStatus <- function(project=NULL) {
@@ -99,7 +117,7 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
   status_updated <- FALSE
 
   if (!identical(status$library$Packages, status$lockfile$Packages)) {
-    suppressWarnings(renv::restore(project=dir, prompt=FALSE, clean=TRUE))
+    suppressWarnings(renv::restore(project=dir, prompt=FALSE, clean=TRUE, repos=getRepos()))
 
     # non-vendor approach
     # for (i in 1:nrow(restore)) {
@@ -126,7 +144,7 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
       row <- specificDeps[i, ]
       currentDep <- status$lockfile$Packages[[row$package]]
       if (is.null(currentDep) || currentDep$Version != row$version) {
-        remotes::install_version(row$package, version=row$version, reload=FALSE)
+        remotes::install_version(row$package, version=row$version, reload=FALSE, repos=getRepos())
         status_updated <- TRUE
       }
     }
@@ -136,16 +154,16 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
   # unfortunately, install_deps doesn't check version requirements
   # https://github.com/r-lib/devtools/issues/1314
   if (length(need) > 0 || length(remove) > 0 || update_all) {
-    remotes::install_deps(dir, upgrade=update_all, reload=FALSE)
+    remotes::install_deps(dir, upgrade=update_all, reload=FALSE, repos=getRepos())
     status_updated <- TRUE
   }
 
   if (status_updated) {
-    suppressMessages(renv::snapshot(project=dir, prompt=FALSE))
+    suppressMessages(renv::snapshot(project=dir, prompt=FALSE, repos=getRepos()))
   }
 
   # copy back after successful
-  jetpack_dir <- getOption("jetpack_dir")
+  jetpack_dir <- .jetpack_env$jetpack_dir
   file.copy(file.path(renvProject(), "DESCRIPTION"), file.path(jetpack_dir, "DESCRIPTION"), overwrite=TRUE)
   file.copy(file.path(renvProject(), "renv.lock"), file.path(jetpack_dir, "renv.lock"), overwrite=TRUE)
 
@@ -168,11 +186,12 @@ isWindows <- function() {
 
 keepwd <- function(code) {
   wd <- getwd()
-  tryCatch(code, finally={ setwd(wd) })
+  on.exit(setwd(wd))
+  eval(code)
 }
 
 loadExternal <- function(package) {
-  lib_paths <- getOption("jetpack_lib")
+  lib_paths <- .jetpack_env$jetpack_lib
   loadNamespace(package, lib.loc=lib_paths)
 }
 
@@ -199,7 +218,7 @@ pkgVersion <- function(status, name) {
 }
 
 pkgRemove <- function(name) {
-  if (name %in% rownames(utils::installed.packages())) {
+  if (length(find.package(name, quiet=TRUE)) > 0) {
     suppressMessages(utils::remove.packages(name))
   }
 }
@@ -211,12 +230,12 @@ prepCommand <- function() {
     stopNotPackified()
   }
 
-  options(jetpack_dir=dir)
-  venv_dir <- setupEnv(dir)
+  assign("jetpack_dir", dir, envir=.jetpack_env)
+  setupEnv(dir)
 
   # copy files
-  file.copy(file.path(dir, "DESCRIPTION"), file.path(venv_dir, "DESCRIPTION"), overwrite=TRUE)
-  file.copy(file.path(dir, "renv.lock"), file.path(venv_dir, "renv.lock"), overwrite=TRUE)
+  file.copy(file.path(dir, "DESCRIPTION"), file.path(renvProject(), "DESCRIPTION"), overwrite=TRUE)
+  file.copy(file.path(dir, "renv.lock"), file.path(renvProject(), "renv.lock"), overwrite=TRUE)
 
   if (!renvOn()) {
     if (interactive()) {
@@ -226,7 +245,6 @@ prepCommand <- function() {
     }
   }
 
-  ensureRepos()
   checkInsecureRepos()
 }
 
@@ -242,15 +260,18 @@ renvOn <- function() {
 }
 
 renvProject <- function() {
-  getOption("jetpack_venv")
+  .jetpack_env$jetpack_venv
 }
 
-sandbox <- function(code) {
+sandbox <- function(code, prep=TRUE) {
   libs <- c("remotes", "desc", "docopt")
   for (lib in libs) {
     loadExternal(lib)
   }
-  invisible(eval(code))
+  if (prep) {
+    prepCommand()
+  }
+  invisible(configureRenv(code))
 }
 
 showStatus <- function(status) {
@@ -328,7 +349,7 @@ warn <- function(msg) {
 venvDir <- function(dir) {
   # similar logic as Pipenv
   if (isTesting()) {
-    venv_dir <- file.path(tempdir(), "renvs")
+    venv_dir <- Sys.getenv("TEST_JETPACK_ROOT")
   } else if (isWindows()) {
     venv_dir <- "~/.renvs"
   } else {
@@ -341,9 +362,7 @@ venvDir <- function(dir) {
   file.path(venv_dir, venv_name)
 }
 
-setupEnv <- function(dir=getwd(), init=FALSE) {
-  ensureRepos()
-
+setupEnv <- function(dir, init=FALSE) {
   venv_dir <- venvDir(dir)
   if (init && file.exists(venv_dir) && !file.exists(file.path(dir, "renv.lock"))) {
     # remove previous virtual env
@@ -353,7 +372,8 @@ setupEnv <- function(dir=getwd(), init=FALSE) {
     dir.create(venv_dir, recursive=TRUE)
   }
 
-  options(renv.verbose=FALSE, renv.config.synchronized.check = FALSE, jetpack_venv=venv_dir, jetpack_lib=.libPaths())
+  assign("jetpack_venv", venv_dir, envir=.jetpack_env)
+  assign("jetpack_lib", .libPaths(), envir=.jetpack_env)
 
   # initialize renv
   if (!packified()) {
@@ -366,8 +386,8 @@ setupEnv <- function(dir=getwd(), init=FALSE) {
     file.copy(file.path(dir, "DESCRIPTION"), file.path(venv_dir, "DESCRIPTION"), overwrite=TRUE)
 
     # restore wd after init changes it
-    keepwd(quietly(renv::init(project=venv_dir, bare=TRUE, restart=FALSE, settings=list(snapshot.type = "explicit"))))
-    quietly(renv::snapshot(prompt=FALSE, force=TRUE))
+    keepwd(quietly(renv::init(project=venv_dir, bare=TRUE, restart=FALSE, repos=getRepos(), settings=list(snapshot.type = "explicit"))))
+    quietly(renv::snapshot(prompt=FALSE, force=TRUE, repos=getRepos()))
 
     # reload desc
     if (interactive()) {
@@ -378,6 +398,4 @@ setupEnv <- function(dir=getwd(), init=FALSE) {
   if (!file.exists(file.path(dir, "renv.lock"))) {
     file.copy(file.path(renvProject(), "renv.lock"), file.path(dir, "renv.lock"))
   }
-
-  venv_dir
 }

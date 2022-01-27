@@ -1,5 +1,6 @@
 #' Show outdated packages
 #'
+#' @return No return value
 #' @export
 #' @examples \dontrun{
 #'
@@ -7,12 +8,10 @@
 #' }
 outdated <- function() {
   sandbox({
-    prepCommand()
-
     status <- getStatus()
     packages <- names(status$lockfile$Package)
 
-    deps <- remotes::package_deps(packages)
+    deps <- remotes::package_deps(packages, repos=getRepos())
     # TODO decide what to do about uninstalled packages
     outdated <- deps[deps$diff == -1, ]
 

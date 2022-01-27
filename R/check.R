@@ -1,5 +1,6 @@
 #' Check that all dependencies are installed
 #'
+#' @return `TRUE` if all dependencies are installed, `FALSE` otherwise, invisibly
 #' @export
 #' @examples \dontrun{
 #'
@@ -7,8 +8,6 @@
 #' }
 check <- function() {
   sandbox({
-    prepCommand()
-
     status <- getStatus()
     missing <- getMissing(status)
     if (length(missing) > 0) {

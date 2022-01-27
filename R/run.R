@@ -1,5 +1,6 @@
 #' Run the command line interface
 #'
+#' @return No return value
 #' @export
 #' @keywords internal
 run <- function() {
@@ -78,7 +79,7 @@ run <- function() {
       cat(color(paste0(msg, "\n"), "red"))
       quit(status=1)
     })
-  })
+  }, prep=FALSE)
 }
 
 version <- function() {

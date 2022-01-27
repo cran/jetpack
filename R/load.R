@@ -1,22 +1,25 @@
 #' Load Jetpack
 #'
+#' @return No return value
 #' @export
 #' @keywords internal
 load <- function() {
-  wd <- getwd()
-  dir <- findDir(wd)
+  dir <- findDir(getwd())
 
   if (is.null(dir)) {
     stopNotPackified()
   }
 
   tryCatch({
-    venv_dir <- setupEnv(dir)
+    configureRenv({
+      setupEnv(dir)
 
-    # must source from virtualenv directory
-    # for RStudio for work properly
-    keepwd({
-      setwd(venv_dir)
+      # must source from virtualenv directory
+      # for RStudio for work properly
+      wd <- getwd()
+      on.exit(setwd(wd))
+      setwd(renvProject())
+
       quietly(source("renv/activate.R"))
     })
   }, error = function(e) {

@@ -2,6 +2,7 @@
 #'
 #' @param packages Packages to update
 #' @param remotes Remotes to update
+#' @return No return value
 #' @export
 #' @examples \dontrun{
 #'
@@ -13,14 +14,12 @@
 #' }
 update <- function(packages=c(), remotes=c()) {
   sandbox({
-    prepCommand()
-
     if (length(packages) == 0) {
       status <- getStatus()
       packages <- names(status$lockfile$Package)
       packages <- packages[!packages %in% c("renv")]
 
-      deps <- remotes::package_deps(packages)
+      deps <- remotes::package_deps(packages, repos=getRepos())
       outdated <- deps[deps$diff < 0, ]
 
       if (nrow(outdated) > 0) {

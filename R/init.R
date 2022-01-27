@@ -1,6 +1,7 @@
 #' Set up Jetpack
 #'
 #' @export
+#' @return No return value
 #' @examples \dontrun{
 #'
 #' jetpack::init()
@@ -13,7 +14,7 @@ init <- function() {
 
     initRprofile()
 
-    setupEnv(init=TRUE)
+    setupEnv(getwd(), init=TRUE)
 
     if (!interactive()) {
       success("Run 'jetpack add <package>' to add packages!")
@@ -21,7 +22,7 @@ init <- function() {
       success("Run 'jetpack::add(package)' to add packages!")
     }
     invisible()
-  })
+  }, prep=FALSE)
 }
 
 initRprofile <- function() {

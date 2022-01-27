@@ -2,6 +2,7 @@
 #'
 #' @param packages Packages to remove
 #' @param remotes Remotes to remove
+#' @return No return value
 #' @export
 #' @examples \dontrun{
 #'
@@ -13,8 +14,6 @@
 #' }
 remove <- function(packages, remotes=c()) {
   sandbox({
-    prepCommand()
-
     desc <- getDesc()
 
     for (package in packages) {

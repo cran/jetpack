@@ -6,7 +6,7 @@
 - Designed for reproducibility - thanks to [renv](https://rstudio.github.io/renv/), no more global installs!
 - Works from both R and the command line
 
-Inspired by [Yarn](https://yarnpkg.com/), [Bundler](https://bundler.io/), and [Pipenv](https://docs.pipenv.org/)
+Inspired by [Yarn](https://yarnpkg.com/), [Bundler](https://bundler.io/), and [Pipenv](https://pipenv.pypa.io/en/latest/)
 
 [![Build Status](https://github.com/ankane/jetpack/workflows/build/badge.svg?branch=master)](https://github.com/ankane/jetpack/actions) [![CRAN status](https://www.r-pkg.org/badges/version/jetpack)](https://cran.r-project.org/package=jetpack)
 
@@ -299,7 +299,7 @@ Jetpack 0.3.0 greatly reduces the number of files in your projects. To upgrade a
 
 ## History
 
-View the [changelog](https://github.com/ankane/jetpack/blob/master/CHANGELOG.md)
+View the [changelog](https://github.com/ankane/jetpack/blob/master/NEWS.md)
 
 ## Contributing
 
@@ -323,4 +323,11 @@ In R, do:
 install.packages("devtools")
 devtools::install_deps(dependencies=TRUE)
 devtools::test()
+```
+
+To test a single file, use:
+
+```r
+devtools::install() # to use latest updates
+devtools::test_active_file("tests/testthat/test-jetpack.R")
 ```

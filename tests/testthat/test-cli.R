@@ -1,25 +1,25 @@
-context("jetpack")
+context("cli")
 
 test_that("it works", {
   setup({
-    on.exit(renv::deactivate())
+    cli <- cliFile()
+    jetpack::cli(file=cli)
 
-    jetpack::init()
+    run(cli, "init")
     expectFile("DESCRIPTION")
     expectFile("renv.lock")
     expectFile(".Rprofile")
 
-    jetpack::add("DBI")
+    run(cli, "add DBI")
     expectFileContains("DESCRIPTION", "DBI")
     expectFileContains("renv.lock", "DBI")
 
-    check <- jetpack::check()
-    expect(check, "Check should return true")
+    run(cli, "check")
 
-    jetpack::install()
-    jetpack::update("DBI")
+    run(cli, "install")
+    run(cli, "update DBI")
 
-    jetpack::remove("DBI")
+    run(cli, "remove DBI")
     refuteFileContains("DESCRIPTION", "DBI")
     refuteFileContains("renv.lock", "DBI")
   })
