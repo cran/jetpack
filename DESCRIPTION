@@ -1,8 +1,8 @@
 Package: jetpack
 Type: Package
 Title: A Friendly Package Manager
-Version: 0.5.1
-Date: 2022-01-26
+Version: 0.5.2
+Date: 2022-01-28
 Authors@R: person("Andrew", "Kane", email = "andrew@chartkick.com", role = c("aut", "cre"))
 Description: Manage project dependencies from your DESCRIPTION file. Create a reproducible virtual environment with minimal additional files in your project. Provides tools to add, remove, and update dependencies as well as install existing dependencies with a single function.
 URL: https://github.com/ankane/jetpack
@@ -12,10 +12,11 @@ RoxygenNote: 7.1.2
 Encoding: UTF-8
 Imports: renv (>= 0.13.1), remotes (>= 2.0.3), desc (>= 1.2.0), docopt
         (>= 0.4)
-Suggests: testthat, withr
+Suggests: testthat, withr, packrat
+Config/testthat/start-first: cli, global
 NeedsCompilation: no
-Packaged: 2022-01-26 11:30:38 UTC; andrew
+Packaged: 2022-01-28 09:01:23 UTC; andrew
 Author: Andrew Kane [aut, cre]
 Maintainer: Andrew Kane <andrew@chartkick.com>
 Repository: CRAN
-Date/Publication: 2022-01-27 23:20:09 UTC
+Date/Publication: 2022-01-28 11:30:02 UTC

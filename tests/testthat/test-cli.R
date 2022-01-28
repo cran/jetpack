@@ -1,5 +1,6 @@
 context("cli")
 
+# must run before any calls to renv::deactivate()
 test_that("it works", {
   setup({
     cli <- cliFile()
@@ -17,6 +18,7 @@ test_that("it works", {
     run(cli, "check")
 
     run(cli, "install")
+    run(cli, "install --deployment")
     run(cli, "update DBI")
 
     run(cli, "remove DBI")

@@ -1,3 +1,11 @@
+## 0.5.2 (2022-01-28)
+
+- Added support for upgrading renv
+- Improved output
+- Fixed `unused argument` error with renv < 0.15
+- Fixed `update` without packages adding dependencies to `DESCRIPTION`
+- Fixed error message when `migrate` called outside of project
+
 ## 0.5.1 (2022-01-26)
 
 - Fixed error with renv 0.15
@@ -86,8 +94,8 @@ Breaking changes
 
 ## 0.1.5 (2018-06-17)
 
-- Don't update DESCRIPTION unless commands are successful
-- Trim trailing whitespace in DESCRIPTION
+- Don't update `DESCRIPTION` unless commands are successful
+- Trim trailing whitespace in `DESCRIPTION`
 - No longer modifies working directory when run from R
 
 ## 0.1.4 (2018-06-16)

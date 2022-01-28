@@ -20,7 +20,7 @@ color <- function(message, color) {
   }
 }
 
-configureRenv <- function(code) {
+configureRenv <- function(code, verbose=FALSE) {
   previous <- options(
     "renv.verbose",
     "renv.config.synchronized.check",
@@ -28,11 +28,15 @@ configureRenv <- function(code) {
   )
   on.exit(options(previous))
   options(
-    renv.verbose=FALSE,
+    renv.verbose=(verbose || debugMode()),
     renv.config.synchronized.check=FALSE,
     renv.config.sandbox.enabled=TRUE
   )
   eval(code)
+}
+
+debugMode <- function() {
+  Sys.getenv("JETPACK_DEBUG", "") != ""
 }
 
 enableRenv <- function() {
@@ -117,7 +121,7 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
   status_updated <- FALSE
 
   if (!identical(status$library$Packages, status$lockfile$Packages)) {
-    suppressWarnings(renv::restore(project=dir, prompt=FALSE, clean=TRUE, repos=getRepos()))
+    verboseRenv(suppressWarnings(renv::restore(project=dir, prompt=FALSE, clean=TRUE)))
 
     # non-vendor approach
     # for (i in 1:nrow(restore)) {
@@ -159,7 +163,9 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
   }
 
   if (status_updated) {
-    suppressMessages(renv::snapshot(project=dir, prompt=FALSE, repos=getRepos()))
+    # let renv handle repos for all renv functions
+    # also, repos option not available until 0.15.0
+    suppressMessages(renv::snapshot(project=dir, prompt=FALSE))
   }
 
   # copy back after successful
@@ -249,10 +255,19 @@ prepCommand <- function() {
 }
 
 quietly <- function(code) {
-  utils::capture.output(suppressMessages({
-    val <- code
-  }))
-  val
+  if (debugMode()) {
+    eval(code)
+  } else {
+    # status output not captured by capture.output
+    previous <- options("renv.pretty.print.emitter")
+    on.exit(options(previous))
+    options(renv.pretty.print.emitter=function(msg) {})
+
+    utils::capture.output(suppressMessages({
+      val <- code
+    }))
+    val
+  }
 }
 
 renvOn <- function() {
@@ -362,6 +377,12 @@ venvDir <- function(dir) {
   file.path(venv_dir, venv_name)
 }
 
+verboseRenv <- function(code) {
+  # TODO filter output
+  # configureRenv(code, verbose=TRUE)
+  eval(code)
+}
+
 setupEnv <- function(dir, init=FALSE) {
   venv_dir <- venvDir(dir)
   if (init && file.exists(venv_dir) && !file.exists(file.path(dir, "renv.lock"))) {
@@ -386,8 +407,10 @@ setupEnv <- function(dir, init=FALSE) {
     file.copy(file.path(dir, "DESCRIPTION"), file.path(venv_dir, "DESCRIPTION"), overwrite=TRUE)
 
     # restore wd after init changes it
-    keepwd(quietly(renv::init(project=venv_dir, bare=TRUE, restart=FALSE, repos=getRepos(), settings=list(snapshot.type = "explicit"))))
-    quietly(renv::snapshot(prompt=FALSE, force=TRUE, repos=getRepos()))
+    keepwd(quietly(renv::init(project=venv_dir, bare=TRUE, restart=FALSE, settings=list(snapshot.type = "explicit"))))
+    # let renv handle repos for all renv functions
+    # also, repos option not available until 0.15.0
+    quietly(renv::snapshot(prompt=FALSE, force=TRUE))
 
     # reload desc
     if (interactive()) {

@@ -15,9 +15,8 @@
 update <- function(packages=c(), remotes=c()) {
   sandbox({
     if (length(packages) == 0) {
-      status <- getStatus()
-      packages <- names(status$lockfile$Package)
-      packages <- packages[!packages %in% c("renv")]
+      desc <- getDesc()
+      packages <- desc$get_deps()$package
 
       deps <- remotes::package_deps(packages, repos=getRepos())
       outdated <- deps[deps$diff < 0, ]
@@ -48,9 +47,13 @@ update <- function(packages=c(), remotes=c()) {
         versions[package] <- pkgVersion(status, package)
       }
 
-      desc <- updateDesc(packages, remotes)
+      if (packages %in% c("renv")) {
+        renv::upgrade(prompt=FALSE)
+      }
 
-      installHelper(remove=packages, desc=desc)
+      desc <- updateDesc(packages[!packages %in% c("renv")], remotes)
+
+      installHelper(remove=packages[!packages %in% c("renv")], desc=desc)
 
       # show updated versions
       status <- getStatus()
