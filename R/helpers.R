@@ -13,7 +13,7 @@ checkInsecureRepos <- function() {
 
 color <- function(message, color) {
   if (interactive() || isatty(stdout())) {
-    color_codes = list(red=31, green=32, yellow=33)
+    color_codes <- list(red=31, green=32, yellow=33)
     paste0("\033[", color_codes[color], "m", message, "\033[0m")
   } else {
     message
@@ -66,7 +66,7 @@ getDesc <- function() {
 getMissing <- function(status) {
   packages <- names(status$lockfile$Package)
   dependencies <- getDependencies()$Package
-  missing <- setdiff(dependencies, packages)
+  setdiff(dependencies, packages)
 }
 
 getName <- function(package) {
@@ -91,7 +91,7 @@ getStatus <- function(project=NULL) {
     quietly(renv::status(project=project))
   }, error=function(err) {
     msg <- conditionMessage(err)
-    if (grepl("This project has not yet been packified", msg)) {
+    if (grepl("This project has not yet been initialized", msg, fixed=TRUE)) {
       stopNotPackified()
     } else {
       stop(msg)
@@ -124,7 +124,7 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
     verboseRenv(suppressWarnings(renv::restore(project=dir, prompt=FALSE, clean=TRUE)))
 
     # non-vendor approach
-    # for (i in 1:nrow(restore)) {
+    # for (i in seq_len(nrow(restore))) {
     #   row <- restore[i, ]
     #   devtools::install_version(row$package, version=row$version, dependencies=FALSE)
     # }
@@ -144,7 +144,7 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
   specificDeps <- deps[startsWith(deps$version, "== "), ]
   if (nrow(specificDeps) > 0) {
     specificDeps$version <- sub("== ", "", specificDeps$version)
-    for (i in 1:nrow(specificDeps)) {
+    for (i in seq_len(nrow(specificDeps))) {
       row <- specificDeps[i, ]
       currentDep <- status$lockfile$Packages[[row$package]]
       if (is.null(currentDep) || currentDep$Version != row$version) {
@@ -180,6 +180,10 @@ installHelper <- function(remove=c(), desc=NULL, show_status=FALSE, update_all=F
 
     showStatus(status)
   }
+}
+
+isCLI <- function() {
+  isTRUE(.jetpack_env$jetpack_cli)
 }
 
 isTesting <- function() {
@@ -315,13 +319,13 @@ silenceWarnings <- function(msgs, code) {
 }
 
 stopNotMigrated <- function() {
-  cmd <- if (!interactive()) "jetpack migrate" else "jetpack::migrate()"
+  cmd <- if (isCLI()) "jetpack migrate" else "jetpack::migrate()"
   stop(paste0("This project has not yet been migrated to renv.\nRun '", cmd, "' to migrate."))
 }
 
 stopNotPackified <- function() {
-  cmd <- if (!interactive()) "jetpack init" else "jetpack::init()"
-  stop(paste0("This project has not yet been packified.\nRun '", cmd, "' to init."))
+  cmd <- if (isCLI()) "jetpack init" else "jetpack::init()"
+  stop(paste0("This project has not yet been initialized.\nRun '", cmd, "' to init."))
 }
 
 success <- function(msg) {
@@ -407,7 +411,7 @@ setupEnv <- function(dir, init=FALSE) {
     file.copy(file.path(dir, "DESCRIPTION"), file.path(venv_dir, "DESCRIPTION"), overwrite=TRUE)
 
     # restore wd after init changes it
-    keepwd(quietly(renv::init(project=venv_dir, bare=TRUE, restart=FALSE, settings=list(snapshot.type = "explicit"))))
+    keepwd(quietly(renv::init(project=venv_dir, bare=TRUE, restart=FALSE, settings=list(snapshot.type="explicit"))))
     # let renv handle repos for all renv functions
     # also, repos option not available until 0.15.0
     quietly(renv::snapshot(prompt=FALSE, force=TRUE))

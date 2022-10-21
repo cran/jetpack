@@ -27,12 +27,14 @@ run <- function() {
       opts <- docopt::docopt(doc)
     }, error=function(err) {
       msg <- conditionMessage(err)
-      if (!grepl("Usage:", msg)) {
+      if (!grepl("Usage:", msg, fixed=TRUE)) {
         warn(msg)
       }
       message(doc)
       quit(status=1)
     })
+
+    assign("jetpack_cli", TRUE, envir=.jetpack_env)
 
     handleError({
       if (opts$global) {

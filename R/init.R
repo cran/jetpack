@@ -16,7 +16,7 @@ init <- function() {
 
     setupEnv(getwd(), init=TRUE)
 
-    if (!interactive()) {
+    if (isCLI()) {
       success("Run 'jetpack add <package>' to add packages!")
     } else {
       success("Run 'jetpack::add(package)' to add packages!")
@@ -27,7 +27,7 @@ init <- function() {
 
 initRprofile <- function() {
   rprofile <- file.exists(".Rprofile")
-  if (!rprofile || !any(grepl("jetpack", readLines(".Rprofile")))) {
+  if (!rprofile || !any(grepl("jetpack", readLines(".Rprofile"), fixed=TRUE))) {
     str <- "if (requireNamespace(\"jetpack\", quietly=TRUE)) {
   jetpack::load()
 } else {

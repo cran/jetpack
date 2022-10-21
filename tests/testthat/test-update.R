@@ -1,16 +1,21 @@
 context("update")
 
 test_that("it works", {
-  setup({
-    on.exit(renv::deactivate())
+  # fails with cannot open URL error with r-devel-linux-x86_64-fedora-*
+  skip_on_cran()
 
+  setup({
     jetpack::init()
 
-    jetpack::add("DBI@1.1.1")
-    expectFileContains("DESCRIPTION", "DBI (== 1.1.1)")
+    expect_error(jetpack::update("DBI"), "Cannot find package 'DBI' in DESCRIPTION file")
+
+    jetpack::add("DBI@1.1.2")
+    expectFileContains("DESCRIPTION", "DBI (== 1.1.2)")
+
+    expect_message(jetpack::outdated(), "DBI")
 
     jetpack::update()
     expectFileContains("DESCRIPTION", "DBI")
-    refuteFileContains("DESCRIPTION", "1.1.1")
+    refuteFileContains("DESCRIPTION", "1.1.2")
   })
 })

@@ -2,6 +2,8 @@ context("global")
 
 # must run before any calls to renv::deactivate()
 test_that("it works", {
+  skip_on_cran()
+
   skip_if(!identical(Sys.getenv("TEST_JETPACK_GLOBAL"), "true"))
 
   setup({
@@ -14,8 +16,8 @@ test_that("it works", {
     output <- run(cli, "global list")
     expectContains(output, "Using DBI")
 
-    output <- run(cli, "global add DBI@1.1.1")
-    expectContains(output, "Installed DBI 1.1.1")
+    output <- run(cli, "global add DBI@1.1.2")
+    expectContains(output, "Installed DBI 1.1.2")
 
     # TODO figure out remotes error on CI
     # can't convert package rcmdcheck with RemoteType 'any' to remote
@@ -39,5 +41,5 @@ test_that("it works", {
 
     output <- run(cli, "global list")
     refuteContains(output, "Using DBI")
-  })
+  }, deactivate=FALSE)
 })

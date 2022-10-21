@@ -1,9 +1,7 @@
-context("jetpack")
+context("all")
 
 test_that("it works", {
   setup({
-    on.exit(renv::deactivate())
-
     jetpack::init()
     expectFile("DESCRIPTION")
     expectFile("renv.lock")
@@ -19,6 +17,9 @@ test_that("it works", {
     jetpack::install()
     jetpack::install(deployment=TRUE)
     jetpack::update("DBI")
+    jetpack::update()
+
+    jetpack::outdated()
 
     jetpack::remove("DBI")
     refuteFileContains("DESCRIPTION", "DBI")

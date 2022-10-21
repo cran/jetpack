@@ -3,10 +3,12 @@ context("migrate")
 library(packrat)
 
 test_that("it works", {
-  setup({
-    on.exit(renv::deactivate())
+  # fails with unreleased renv versions
+  # https://github.com/ankane/jetpack/issues/23
+  skip_on_cran()
 
-    expect_message(jetpack::migrate(), "This project has not yet been packified.")
+  setup({
+    expect_message(jetpack::migrate(), "This project has not yet been initialized.")
 
     write("Package: app", file="DESCRIPTION")
 
@@ -28,6 +30,8 @@ Version: 0.7.0
 Hash: 3d49688287bd2246cd8a58e233be39d5
 "
     write(packrat_lock, file="packrat.lock")
+
+    expect_error(jetpack::install(), "This project has not yet been migrated to renv.\nRun 'jetpack::migrate()' to migrate.", fixed=TRUE)
 
     jetpack::migrate()
 

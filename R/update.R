@@ -26,7 +26,7 @@ update <- function(packages=c(), remotes=c()) {
 
         installHelper(update_all=TRUE, desc=desc)
 
-        for (i in 1:nrow(outdated)) {
+        for (i in seq_len(nrow(outdated))) {
           row <- outdated[i, ]
           if (is.na(row$installed)) {
             success(paste0("Installed ", row$package, " ", row$available))
@@ -48,7 +48,7 @@ update <- function(packages=c(), remotes=c()) {
       }
 
       if (packages %in% c("renv")) {
-        renv::upgrade(prompt=FALSE)
+        renv::upgrade(prompt=FALSE, reload=FALSE)
       }
 
       desc <- updateDesc(packages[!packages %in% c("renv")], remotes)

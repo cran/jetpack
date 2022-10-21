@@ -14,7 +14,7 @@ migrate <- function() {
     packrat_lockfile <- file.path(dir, "packrat.lock")
 
     if (is.null(dir)) {
-      message("This project has not yet been packified.")
+      message("This project has not yet been initialized.")
     } else if (file.exists(renv_lockfile)) {
       message("renv.lock already exists. You should be good to go.")
     } else if (!file.exists(packrat_lockfile)) {
@@ -35,7 +35,7 @@ migrate <- function() {
       renv::record(list(renv=record), project=temp_dir)
 
       file.copy(file.path(temp_dir, "renv.lock"), renv_lockfile)
-      cmd <- if (!interactive()) "jetpack install" else "jetpack::install()"
+      cmd <- if (isCLI()) "jetpack install" else "jetpack::install()"
       message(paste0("Lockfile migration successful! To finish migrating:\n1. Delete packrat.lock\n2. Run '", cmd, "'"))
     }
   }, prep=FALSE)

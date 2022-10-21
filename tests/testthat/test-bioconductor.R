@@ -7,16 +7,16 @@ test_that("it works", {
   skip_on_cran()
 
   setup({
-    on.exit(renv::deactivate())
-
     jetpack::init()
 
     jetpack::add("BiocManager")
     expectFileContains("DESCRIPTION", "BiocManager")
-    expectFileContains("renv.lock", "Bioconductor")
 
     jetpack::add("Biobase", remote="bioc::release/Biobase")
     expectFileContains("DESCRIPTION", "Biobase")
     expectFileContains("DESCRIPTION", "bioc::release/Biobase")
+
+    jetpack::remove("Biobase", remote="bioc::release/Biobase")
+    jetpack::remove("BiocManager")
   })
 })
