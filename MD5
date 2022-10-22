@@ -1,7 +1,7 @@
-49726aa18ab05c7a6dd7c2c7fe601ede *DESCRIPTION
+2b363566987e6c1056af28a636eb25a9 *DESCRIPTION
 5a70d3d5c3c0302459edc5f0cce73765 *LICENSE
 ea6fa82e2c92cc9abb5c909ee74d5adf *NAMESPACE
-3d5548fed6fa998e459bfaa12206556c *NEWS.md
+ffdadf6d6742c391f09ac1e69f0a2e11 *NEWS.md
 78dd4d5dc352c98b36d1d5154da700f5 *R/add.R
 2cad6f326babcffa6910bfa8dc64ed64 *R/check.R
 753f1447e38e2a481f9cd41350746b1c *R/cli.R
@@ -43,5 +43,5 @@ f95102604a0566e652d2e8bbe1ff5e02 *tests/testthat/test-install-deployment.R
 6a25a51d116e096510a8445adb3705b9 *tests/testthat/test-local.R
 a276ea4209ab8b441002abe5224c0120 *tests/testthat/test-migrate.R
 bbb005b5557d6af5df872bfd914306ed *tests/testthat/test-remove.R
-a59c69c8641a79f2941769029132c231 *tests/testthat/test-update-renv.R
-b5b60577deae122d2dbbff8af34bd2bd *tests/testthat/test-update.R
+e81bc6d0b8844bdcf6e42398f0e3998c *tests/testthat/test-update-renv.R
+cc288fe11781a493445022290c61ba6b *tests/testthat/test-update.R
