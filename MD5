@@ -1,7 +1,7 @@
-2b363566987e6c1056af28a636eb25a9 *DESCRIPTION
+16217ac0512bb56595b81abb73036fe4 *DESCRIPTION
 5a70d3d5c3c0302459edc5f0cce73765 *LICENSE
 ea6fa82e2c92cc9abb5c909ee74d5adf *NAMESPACE
-ffdadf6d6742c391f09ac1e69f0a2e11 *NEWS.md
+20a294e0088eb44cda9318ef96ae4de4 *NEWS.md
 78dd4d5dc352c98b36d1d5154da700f5 *R/add.R
 2cad6f326babcffa6910bfa8dc64ed64 *R/check.R
 753f1447e38e2a481f9cd41350746b1c *R/cli.R
@@ -35,7 +35,7 @@ c80cfb09cda5342f004bff5e5b496d65 *tests/testthat/helper-setup.R
 fdbc197ce54852d4840c499d1e0e95a5 *tests/testthat/test-bioconductor.R
 24e77abfa38d4c2690ee82598c4bc525 *tests/testthat/test-check.R
 65bdb2fac77d48fbb86400ea0ab34663 *tests/testthat/test-cli.R
-92a00b6fb0b0d0987d7193b877785db1 *tests/testthat/test-github.R
+ed98a96e8a899f81a3d11dac9ddae95c *tests/testthat/test-github.R
 2f493dcca4e5fbf04b9c84178b36356a *tests/testthat/test-global.R
 7e66f188a2daa5a309c3168a2e1994c0 *tests/testthat/test-init.R
 f95102604a0566e652d2e8bbe1ff5e02 *tests/testthat/test-install-deployment.R
